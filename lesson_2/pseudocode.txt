@@ -1,0 +1,26 @@
+#method that returns sum of two integers
+
+Ask user for two integers and store those in variables
+Add those variables together
+Return the result
+*Could add validation to line 3 to make sure what user entered are actually integers
+
+
+
+#method that takes array of strings and concatenates them all together
+
+Given an array of strings
+Result variable starts out empty
+Iterate through each string in array and set Result = Result + current string
+Return Result
+
+
+
+
+#method that takes array of integers and returns new array with every other element
+
+Given an array of integers
+Result variable starts out empty
+Iterate through each element and if array's index for the element is even (assuming array index starts at 0), then set Result = Result + current integers
+Return Result
+

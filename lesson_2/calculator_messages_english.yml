@@ -1,0 +1,10 @@
+#calculator_messages.yml
+
+welcome: "Welcome to the Calculator program! It takes two numbers and performs a basic operation on them"
+num1: "Enter the first number:"
+num2: "Enter the second number:"
+valid_number: "Please enter a valid number"
+valid_operation: "Must choose 'a', 's', 'm', or 'd'"
+result: "The result of peforming the #{operation_to_message(operation)} operation on #{num1} and #{num2} is #{output}"
+recalculate: "Do you want to perform another calculation? (Enter 'Y' to calculate again')"
+exit: "Thanks for using the Calculator!"
