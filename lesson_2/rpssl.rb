@@ -1,27 +1,39 @@
 require 'pry'
-VALID_CHOICES = %w(rock paper scissors spock lizard)
-CHOICE_HASH = { r: 'rock', p: 'paper', x: 'scissors', s: 'spock', l: 'lizard' }
+VALID_CHOICES = { r: 'rock', p: 'paper', x: 'scissors',
+                  s: 'spock', l: 'lizard' }
+WIN_COMBOS = { r: [:x, :l],
+               p: [:r, :s],
+               x: [:p, :l],
+               s: [:r, :x],
+               l: [:s, :p] }
+
 def prompt(message)
   puts "=> #{message}"
 end
 
 def win?(first, second)
-  (first == 'rock' && (second == 'scissors' || second == 'lizard')) ||
-    (first == 'paper' && (second == 'rock' || second == 'spock')) ||
-    (first == 'scissors' && (second == 'paper' || second == 'lizard')) ||
-    (first == 'spock' && (second == 'rock' || second == 'scissors')) ||
-    (first == 'lizard' && (second == 'spock' || second == 'paper'))
+  WIN_COMBOS[first].include?(second)
 end
 
 def gets_choice
-  prompt("Choose one: #{VALID_CHOICES.join(', ')}")
-  prompt("You can enter letter for choice")
+  prompt("Choose one: #{VALID_CHOICES.values.join(', ')}")
+  prompt("Enter letter for choice")
   prompt("-- 'R' for rock (beats scissors and lizard)")
   prompt("-- 'P' for paper (beats rock and spock)")
   prompt("-- 'X' for scissors (beats paper and lizard)")
   prompt("-- 'S' for spock (beats rock and scissors)")
   prompt("-- 'L' for lizard (beats spock and paper)")
-  gets.chomp.downcase
+  gets.chomp.downcase.to_sym
+end
+
+def gets_comp_choice
+  print("Computer is thinking..")
+  10.times do
+    print ".."
+    sleep 0.2
+  end
+  print "\n"
+  VALID_CHOICES.keys.sample
 end
 
 def score_update(player, computer, score)
@@ -54,7 +66,19 @@ def end_of_game_check(score)
   end
 end
 
+def play_again
+  answer = ''
+  loop do
+    prompt("Do you want to play again? (y/n)")
+    answer = gets.chomp.downcase
+    break if answer == 'y' || answer == 'n'
+    prompt("Invalid choice")
+  end
+  answer
+end
+
 score = { player_count: 0, computer_count: 0 }
+
 loop do
   prompt("Welcome to Rock, Paper, Scissors, Spock, Lizard")
   prompt("First player to 5 wins!")
@@ -63,26 +87,25 @@ loop do
     loop do
       choice = gets_choice
 
-      if VALID_CHOICES.include?(CHOICE_HASH[choice.to_sym] || choice)
+      if VALID_CHOICES.key?(choice)
         break
       else
         prompt("That's not a valid choice.")
       end
     end
 
-    computer_choice = VALID_CHOICES.sample
+    computer_choice = gets_comp_choice
     puts "----------------------------------------------------------"
-    prompt("You chose: #{CHOICE_HASH[choice.to_sym] || choice}, computer chose: #{computer_choice}")
+    prompt("You chose: #{VALID_CHOICES[choice]}")
+    prompt("Computer chose: #{VALID_CHOICES[computer_choice]}")
 
-    score = score_update(CHOICE_HASH[choice.to_sym] || choice, computer_choice, score)
-    display_result(CHOICE_HASH[choice.to_sym] || choice, computer_choice, score)
-
+    score = score_update(choice, computer_choice, score)
+    display_result(choice, computer_choice, score)
     end_of_game_check(score)
   end
 
-  prompt("Do you want to play again? (y/n)")
-  answer = gets.chomp
-  break unless answer.downcase.start_with?('y')
+  break if play_again == 'n'
+  score = { player_count: 0, computer_count: 0 }
 end
 
 prompt("Thank you for playing. Good-bye!")
