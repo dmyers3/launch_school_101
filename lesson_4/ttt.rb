@@ -3,10 +3,9 @@ require 'pry'
 WINNING_COMBOS = [[1, 2, 3], [1, 4, 7], [1, 5, 9], [2, 5, 8],
                   [3, 5, 7], [3, 6, 9], [4, 5, 6], [7, 8, 9]].freeze
 INITIAL_MARKER = ' '.freeze
-PLAYER_MARKER = 'X'.freeze
 COMP_MARKER = 'O'.freeze
-PLAYER_MESSAGE = "Congratulations, You Won!".freeze
-COMP_MESSAGE = "Sorry, You Lost".freeze
+PLAYER_MARKER = 'X'.freeze
+FIRST_PLAYER = 'choose'.freeze
 
 def prompt(message)
   puts "=> #{message}"
@@ -15,6 +14,31 @@ end
 def joinor(arr, join_char = ', ', last_word = 'or')
   arr[arr.length - 1] = "#{last_word} #{arr[arr.length - 1]}" if arr.size > 1
   arr.size == 2 ? arr.join(' ') : arr.join(join_char)
+end
+
+def first_player
+  if FIRST_PLAYER == 'choose'
+    return first_player_choice
+  elsif FIRST_PLAYER == 'player'
+    return PLAYER_MARKER
+  else
+    return COMP_MARKER
+  end
+end
+
+def first_player_choice
+  loop do
+    prompt('Which player do you wish to go first?')
+    prompt("Enter 'Y' for yourself or 'C' for computer")
+    answer = gets.chomp.downcase
+    if answer == 'y'
+      return PLAYER_MARKER
+    elsif answer == 'c'
+      return COMP_MARKER
+    else
+      prompt("Please enter a valid response")
+    end
+  end
 end
 
 def initialize_board
@@ -42,12 +66,19 @@ def display_board(brd)
 end
 # rubocop:enable Metrics/AbcSize
 
+def current_player_selection(brd, player)
+  if player == PLAYER_MARKER
+    get_user_input(brd)
+  else
+    get_comp_selection(brd)
+  end
+end
+
 def get_user_input(brd)
   input = ''
   loop do
     prompt("Which square do you want to select?")
     prompt("Enter a number from (#{joinor(empty_squares(brd), ', ', 'or')})")
-    #prompt("Enter a number from (#{empty_squares(brd).join(', ')})")
     prompt("The numbers refer to the squares from left-right then top-bottom")
     prompt("Ex: top-left is '1', top-right is '3' and bottom-right is '9'")
     input = gets.chomp.to_i
@@ -78,8 +109,9 @@ def get_comp_selection(brd)
   print("Computer is thinking..")
   10.times do
     print '..'
-    sleep 0.2
+    sleep 0.1
   end
+  puts " "
 
   # Checks to see if there is a square that can win the game
   comp_win_square = comp_strategy(COMP_MARKER, brd)
@@ -101,7 +133,7 @@ def empty_squares(brd)
 end
 
 def update_board(brd, choice, player)
-  if player == "user"
+  if player == PLAYER_MARKER
     brd[choice] = PLAYER_MARKER
   else
     brd[choice] = COMP_MARKER
@@ -109,33 +141,49 @@ def update_board(brd, choice, player)
   brd
 end
 
-def end_of_game?(brd, player, score)
-  if player == 'user'
-    return true if winner?(brd, PLAYER_MARKER, PLAYER_MESSAGE)
-  else
-    return true if winner?(brd, COMP_MARKER, COMP_MESSAGE)
-  end
-  if empty_squares(brd) == []
-    prompt("It's a tie!")
-    return true
+def winner?(brd, marker)
+  player_squares = brd.select { |_square, value| value == marker }.keys
+  WINNING_COMBOS.each do |combo|
+    return true if (combo - player_squares).empty?
   end
   false
 end
 
-def winner?(brd, marker, message)
-  player_squares = brd.select { |_square, value| value == marker }.keys
-  WINNING_COMBOS.each do |combo|
-    if (combo - player_squares).empty?
-      prompt(message)
-      return true
-    end
+def display_winner(player)
+  if player == PLAYER_MARKER
+    prompt("Congratulations, You Won!")
+  else
+    prompt("Sorry, You Lost")
   end
-  false
+end
+
+def tie(brd)
+  if empty_squares(brd) == []
+    prompt("It's a tie!")
+    return true
+  end
+end
+
+def update_score(score, player)
+  if player == PLAYER_MARKER
+    score[:player_count] += 1
+  else
+    score[:computer_count] += 1
+  end
+  score
 end
 
 def display_score(score)
   prompt("Current score is You: #{score[:player_count]}")
   prompt("            Computer: #{score[:computer_count]}")
+end
+
+def alternate_player(player)
+  if player == PLAYER_MARKER
+    COMP_MARKER
+  else
+    PLAYER_MARKER
+  end
 end
 
 def play_again
@@ -152,24 +200,28 @@ end
 score = { player_count: 0, computer_count: 0 }
 loop do
   prompt("Welcome to Tic Tac Toe!")
-  prompt("First player to 5 wins!")
-  board = initialize_board
-  #while score[:player_count] < 5 && score[:computer_count] < 5
-  
-
+  while score[:player_count] < 5 && score[:computer_count] < 5
+    prompt("First player to 5 wins!")
+    current_player = first_player
+    board = initialize_board
+    display_board(board)
     loop do
+      square_choice = current_player_selection(board, current_player)
+      board = update_board(board, square_choice, current_player)
       display_board(board)
-      player_selection = get_user_input(board)
-      board = update_board(board, player_selection, 'user')
-      display_board(board)
-      break if end_of_game?(board, 'user', score)
-      comp_selection = get_comp_selection(board)
-      board = update_board(board, comp_selection, 'comp')
-      display_board(board)
-      break if end_of_game?(board, 'comp', score)
-      system "clear"
+      if winner?(board, current_player)
+        display_winner(current_player)
+        score = update_score(score, current_player)
+        display_score(score)
+        break
+      end
+      if tie(board)
+        display_score(score)
+        break
+      end
+      current_player = alternate_player(current_player)
     end
-  #end
+  end
   break if play_again == "n"
 end
 prompt("Thanks for playing! Good-bye!")
