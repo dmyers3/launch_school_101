@@ -42,9 +42,7 @@ end
 
 def initial_hands(deck, player_cards, dealer_cards)
   2.times { player_cards = deal(deck, player_cards) }
-  # player_cards = deal(deck, player_cards)
   2.times { dealer_cards = deal(deck, dealer_cards) }
-  # dealer_cards = deal(deck, dealer_cards) 
 end
 
 def value(cards)
@@ -69,7 +67,7 @@ def ace_check(val, aces)
 end
 
 def display_hands(d_cards, p_cards)
-  prompt("Dealer is showing: #{value(d_cards) - value([d_cards[0]])}")
+  prompt("Dealer is showing: #{value(d_cards.values_at(1..-1))}")
   card_display(d_cards, d_cards.length, 'd')
   prompt("Player is showing: #{value(p_cards)}")
   card_display(p_cards, p_cards.length, 'p')
@@ -79,7 +77,6 @@ deck = initialize_deck
 player_cards = [] 
 dealer_cards = []
 initial_hands(deck, player_cards, dealer_cards)
-p dealer_cards
 display_hands(dealer_cards, player_cards)
 
 p player_cards
