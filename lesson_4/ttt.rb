@@ -233,10 +233,12 @@ end
 loop do
   prompt("Welcome to Tic Tac Toe!")
   score = { player_count: 0, computer_count: 0 }
+  
   while score[:player_count] < 5 && score[:computer_count] < 5
     current_player, board = new_round
     play_one_round(current_player, board, score)
   end
+  
   break if play_again == "n"
 end
 prompt("Thanks for playing! Good-bye!")
