@@ -18,11 +18,11 @@ end
 
 def first_player
   if FIRST_PLAYER == 'choose'
-    return first_player_choice
+    first_player_choice
   elsif FIRST_PLAYER == 'player'
-    return PLAYER_MARKER
+    PLAYER_MARKER
   else
-    return COMP_MARKER
+    COMP_MARKER
   end
 end
 
@@ -41,10 +41,28 @@ def first_player_choice
   end
 end
 
+def new_round
+  prompt("First player to 5 wins!")
+  current_player = first_player
+  board = initialize_board
+  display_board(board)
+  return current_player, board
+end
+
 def initialize_board
   new_board = {}
   (1..9).each { |num| new_board[num] = INITIAL_MARKER }
   new_board
+end
+
+def play_one_round(current_player, board, score)
+  loop do
+    square_choice = current_player_selection(board, current_player)
+    board = update_board(board, square_choice, current_player)
+    display_board(board)
+    break if end_of_round?(board, current_player, score)
+    current_player = alternate_player(current_player)
+  end
 end
 
 # rubocop:disable Metrics/AbcSize
@@ -122,9 +140,9 @@ def get_comp_selection(brd)
   return comp_block_square if (1..9).cover?(comp_block_square)
 
   if empty_squares(brd).include?(5)
-    return 5
+    5
   else
-    return empty_squares(brd).sample
+    empty_squares(brd).sample
   end
 end
 
@@ -133,11 +151,12 @@ def empty_squares(brd)
 end
 
 def update_board(brd, choice, player)
-  if player == PLAYER_MARKER
-    brd[choice] = PLAYER_MARKER
-  else
-    brd[choice] = COMP_MARKER
-  end
+  brd[choice] =
+    if player == PLAYER_MARKER
+      PLAYER_MARKER
+    else
+      COMP_MARKER
+    end
   brd
 end
 
@@ -160,7 +179,7 @@ end
 def tie(brd)
   if empty_squares(brd) == []
     prompt("It's a tie!")
-    return true
+    true
   end
 end
 
@@ -171,6 +190,20 @@ def update_score(score, player)
     score[:computer_count] += 1
   end
   score
+end
+
+def end_of_round?(board, current_player, score)
+  if winner?(board, current_player)
+    display_winner(current_player)
+    score = update_score(score, current_player)
+    display_score(score)
+    return true
+  end
+  if tie(board)
+    display_score(score)
+    return true
+  end
+  false
 end
 
 def display_score(score)
@@ -197,30 +230,12 @@ def play_again
   answer
 end
 
-score = { player_count: 0, computer_count: 0 }
 loop do
   prompt("Welcome to Tic Tac Toe!")
+  score = { player_count: 0, computer_count: 0 }
   while score[:player_count] < 5 && score[:computer_count] < 5
-    prompt("First player to 5 wins!")
-    current_player = first_player
-    board = initialize_board
-    display_board(board)
-    loop do
-      square_choice = current_player_selection(board, current_player)
-      board = update_board(board, square_choice, current_player)
-      display_board(board)
-      if winner?(board, current_player)
-        display_winner(current_player)
-        score = update_score(score, current_player)
-        display_score(score)
-        break
-      end
-      if tie(board)
-        display_score(score)
-        break
-      end
-      current_player = alternate_player(current_player)
-    end
+    current_player, board = new_round
+    play_one_round(current_player, board, score)
   end
   break if play_again == "n"
 end
