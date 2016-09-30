@@ -7,23 +7,23 @@ def prompt(message)
 end
 
 def initialize_deck
- [['H', '2'], ['H', '3'], ['H', '4'], ['H', '5'], ['H', '6'], ['H', '7'],  
-  ['H', '8'], ['H', '9'], ['H', 'T'], ['H', 'J'], ['H', 'Q'], ['H', 'K'],  
-  ['H', 'A'], ['D', '2'], ['D', '3'], ['D', '4'], ['D', '5'], ['D', '6'],  
-  ['D', '7'], ['D', '8'], ['D', '9'], ['D', 'T'], ['D', 'J'], ['D', 'Q'],
-  ['D', 'K'], ['D', 'A'], ['S', '2'], ['S', '3'], ['S', '4'], ['S', '5'],
-  ['S', '6'], ['S', '7'], ['S', '8'], ['S', '9'], ['S', 'T'], ['S', 'J'],
-  ['S', 'Q'], ['S', 'K'], ['S', 'A'], ['C', '2'], ['C', '3'], ['C', '4'],
-  ['C', '5'], ['C', '6'], ['C', '7'], ['C', '8'], ['C', '9'], ['C', 'T'],
-  ['C', 'J'], ['C', 'Q'], ['C', 'K'], ['C', 'A']]
+  [['H', '2'], ['H', '3'], ['H', '4'], ['H', '5'], ['H', '6'], ['H', '7'],
+   ['H', '8'], ['H', '9'], ['H', 'T'], ['H', 'J'], ['H', 'Q'], ['H', 'K'],
+   ['H', 'A'], ['D', '2'], ['D', '3'], ['D', '4'], ['D', '5'], ['D', '6'],
+   ['D', '7'], ['D', '8'], ['D', '9'], ['D', 'T'], ['D', 'J'], ['D', 'Q'],
+   ['D', 'K'], ['D', 'A'], ['S', '2'], ['S', '3'], ['S', '4'], ['S', '5'],
+   ['S', '6'], ['S', '7'], ['S', '8'], ['S', '9'], ['S', 'T'], ['S', 'J'],
+   ['S', 'Q'], ['S', 'K'], ['S', 'A'], ['C', '2'], ['C', '3'], ['C', '4'],
+   ['C', '5'], ['C', '6'], ['C', '7'], ['C', '8'], ['C', '9'], ['C', 'T'],
+   ['C', 'J'], ['C', 'Q'], ['C', 'K'], ['C', 'A']]
 end
 
 def card_display(cards, num_cards, hidden = false)
   dealer_first_card = cards[0] if hidden == true
   cards[0] = [' ', ' '] if hidden == true
-  num_cards.times { print "  ______ "}
+  num_cards.times { print "  ______ " }
   puts ""
-  num_cards.times { |num| print " |#{cards[num][0]}     |"  }
+  num_cards.times { |num| print " |#{cards[num][0]}     |" }
   puts ""
   num_cards.times { print " |      |" }
   puts ""
@@ -35,7 +35,6 @@ def card_display(cards, num_cards, hidden = false)
   puts ""
   cards[0] = dealer_first_card if hidden == true
 end
-
 
 def deal(current_deck, hand)
   card_dealt = current_deck.sample
@@ -57,7 +56,7 @@ def value_calc(cards)
     when 'T', 'J', 'Q', 'K' then value += 10
     when 'A'
       value += 1
-      num_aces +=1
+      num_aces += 1
     end
   end
   value = ace_check(value, num_aces) if num_aces > 0
@@ -77,7 +76,7 @@ def display_hands(d_cards, p_cards, values, hidden = false)
   card_display(p_cards, p_cards.length)
 end
 
-def get_player_choice
+def player_choice
   prompt("Would you like to hit or stay?")
   answer = ''
   loop do
@@ -86,12 +85,12 @@ def get_player_choice
     break if answer == 'h' || answer == 's'
     prompt("That's not a valid choice")
   end
-  return answer
+  answer
 end
 
 def player_loop(d_cards, p_cards, values, deck)
   while values[:player] < GAME_TGT
-    case get_player_choice
+    case player_choice
     when 'h'
       p_cards = deal(deck, p_cards)
       values[:player] = value_calc(p_cards)
@@ -100,32 +99,32 @@ def player_loop(d_cards, p_cards, values, deck)
       break
     end
   end
-  values[:player]
 end
 
 def dealer_loop(d_cards, p_cards, values, deck)
   prompt("Dealer is flipping over his hidden card...")
-  sleep 2
+  sleep 1
   values[:dealer] = value_calc(d_cards)
   display_hands(d_cards, p_cards, values)
+  sleep 1.5
   while values[:dealer] < DLR_STAY
     prompt("Dealer hits under #{DLR_STAY}")
     d_cards = deal(deck, d_cards)
     values[:dealer] = value_calc(d_cards)
     display_hands(d_cards, p_cards, values)
-    sleep 3
+    sleep 2
   end
-  values[:dealer]
 end
-    
+
 def check_for_bust(values)
   if values[:player] > GAME_TGT
     display_lose
+    return true
   elsif values[:dealer] > GAME_TGT
     display_win
-  else
-    nil
+    return true
   end
+  nil
 end
 
 def display_win
@@ -149,29 +148,34 @@ def compare_values(values)
     display_lose
   end
 end
-  
 
-loop do
-  deck = initialize_deck
-  player_cards = [] 
-  dealer_cards = []
-  initial_hands(deck, player_cards, dealer_cards)
-  values = { player: value_calc(player_cards), 
-             dealer: value_calc(dealer_cards.values_at(1..-1)) }
-  display_hands(dealer_cards, player_cards, values, true)
-  player_final_value = player_loop(dealer_cards, player_cards, values, deck)
-  break if check_for_bust(values)
-  dealer_final_value = dealer_loop(dealer_cards, player_cards, values, deck)
-  break if check_for_bust(values)
-  compare_values
+def play_again
+  answer = ''
+  loop do
+    prompt("Do you want to play again? (y/n)")
+    answer = gets.chomp.downcase
+    break if answer == 'y' || answer == 'n'
+    prompt("Invalid choice")
+  end
+  answer
 end
 
-
-
-
-p player_cards
-p dealer_cards
-
-
-
-
+loop do
+  loop do
+    deck = initialize_deck
+    player_cards = []
+    dealer_cards = []
+    initial_hands(deck, player_cards, dealer_cards)
+    values = { player: value_calc(player_cards),
+               dealer: value_calc(dealer_cards.values_at(1..-1)) }
+    display_hands(dealer_cards, player_cards, values, true)
+    player_loop(dealer_cards, player_cards, values, deck)
+    break if check_for_bust(values)
+    dealer_loop(dealer_cards, player_cards, values, deck)
+    break if check_for_bust(values)
+    compare_values(values)
+    break
+  end
+  break if play_again == 'n'
+end
+prompt("Thanks for playing! Good-bye!")
