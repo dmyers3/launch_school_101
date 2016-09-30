@@ -1,4 +1,7 @@
 require 'pry'
+GAME_TGT = 21
+DLR_STAY = 17
+
 def prompt(message)
   puts "=> #{message}"
 end
@@ -15,9 +18,9 @@ def initialize_deck
   ['C', 'J'], ['C', 'Q'], ['C', 'K'], ['C', 'A']]
 end
 
-def card_display(cards, num_cards, player)
-  dealer_first_card = cards[0] if player == 'd'
-  cards[0] = [' ', ' '] if player == 'd'
+def card_display(cards, num_cards, hidden = false)
+  dealer_first_card = cards[0] if hidden == true
+  cards[0] = [' ', ' '] if hidden == true
   num_cards.times { print "  ______ "}
   puts ""
   num_cards.times { |num| print " |#{cards[num][0]}     |"  }
@@ -30,7 +33,7 @@ def card_display(cards, num_cards, player)
   puts ""
   num_cards.times { |num| print " |_____#{cards[num][0]}|" }
   puts ""
-  cards[0] = dealer_first_card if player == 'd'
+  cards[0] = dealer_first_card if hidden == true
 end
 
 
@@ -45,7 +48,7 @@ def initial_hands(deck, player_cards, dealer_cards)
   2.times { dealer_cards = deal(deck, dealer_cards) }
 end
 
-def value(cards)
+def value_calc(cards)
   value = 0
   num_aces = 0
   cards.each do |card|
@@ -66,18 +69,105 @@ def ace_check(val, aces)
   val
 end
 
-def display_hands(d_cards, p_cards)
-  prompt("Dealer is showing: #{value(d_cards.values_at(1..-1))}")
-  card_display(d_cards, d_cards.length, 'd')
-  prompt("Player is showing: #{value(p_cards)}")
-  card_display(p_cards, p_cards.length, 'p')
+def display_hands(d_cards, p_cards, values, hidden = false)
+  system "clear"
+  prompt("Dealer is showing: #{values[:dealer]}")
+  card_display(d_cards, d_cards.length, hidden)
+  prompt("Player is showing: #{values[:player]}")
+  card_display(p_cards, p_cards.length)
 end
 
-deck = initialize_deck
-player_cards = [] 
-dealer_cards = []
-initial_hands(deck, player_cards, dealer_cards)
-display_hands(dealer_cards, player_cards)
+def get_player_choice
+  prompt("Would you like to hit or stay?")
+  answer = ''
+  loop do
+    prompt("Enter 'H' or 'S'")
+    answer = gets.chomp.downcase
+    break if answer == 'h' || answer == 's'
+    prompt("That's not a valid choice")
+  end
+  return answer
+end
+
+def player_loop(d_cards, p_cards, values, deck)
+  while values[:player] < GAME_TGT
+    case get_player_choice
+    when 'h'
+      p_cards = deal(deck, p_cards)
+      values[:player] = value_calc(p_cards)
+      display_hands(d_cards, p_cards, values, true)
+    when 's'
+      break
+    end
+  end
+  values[:player]
+end
+
+def dealer_loop(d_cards, p_cards, values, deck)
+  prompt("Dealer is flipping over his hidden card...")
+  sleep 2
+  values[:dealer] = value_calc(d_cards)
+  display_hands(d_cards, p_cards, values)
+  while values[:dealer] < DLR_STAY
+    prompt("Dealer hits under #{DLR_STAY}")
+    d_cards = deal(deck, d_cards)
+    values[:dealer] = value_calc(d_cards)
+    display_hands(d_cards, p_cards, values)
+    sleep 3
+  end
+  values[:dealer]
+end
+    
+def check_for_bust(values)
+  if values[:player] > GAME_TGT
+    display_lose
+  elsif values[:dealer] > GAME_TGT
+    display_win
+  else
+    nil
+  end
+end
+
+def display_win
+  prompt("Congratulations, You Won!")
+end
+
+def display_lose
+  prompt("Sorry, You Lost")
+end
+
+def display_tie
+  prompt("It's a push!")
+end
+
+def compare_values(values)
+  if values[:player] == values[:dealer]
+    display_tie
+  elsif values[:player] > values[:dealer]
+    display_win
+  else
+    display_lose
+  end
+end
+  
+
+loop do
+  deck = initialize_deck
+  player_cards = [] 
+  dealer_cards = []
+  initial_hands(deck, player_cards, dealer_cards)
+  values = { player: value_calc(player_cards), 
+             dealer: value_calc(dealer_cards.values_at(1..-1)) }
+  display_hands(dealer_cards, player_cards, values, true)
+  player_final_value = player_loop(dealer_cards, player_cards, values, deck)
+  break if check_for_bust(values)
+  dealer_final_value = dealer_loop(dealer_cards, player_cards, values, deck)
+  break if check_for_bust(values)
+  compare_values
+end
+
+
+
 
 p player_cards
 p dealer_cards
