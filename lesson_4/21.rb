@@ -193,18 +193,18 @@ loop do
     deck = initialize_deck
     player_cards = []
     dealer_cards = []
-  
+
     initial_hands(deck, player_cards, dealer_cards)
     totals = { player: value_calc(player_cards),
                dealer: value_calc(dealer_cards.values_at(1..-1)) }
     display_hands(dealer_cards, player_cards, totals, true)
-  
+
     player_loop(dealer_cards, player_cards, totals, deck)
     if bust?(totals)
-      score[:computer_count] += 1 
+      score[:computer_count] += 1
       next
     end
-  
+
     dealer_loop(dealer_cards, player_cards, totals, deck)
     if bust?(totals)
       score[:player_count] += 1
