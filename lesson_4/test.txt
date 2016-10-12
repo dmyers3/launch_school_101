@@ -1,0 +1,103 @@
+# Local Variables
+
+1. The variable `str` is initialized outside a block and then reassigned inside the block.
+This demonstrates local variable scope, and how variables can be reassigned inside a block
+if initialized outside.
+
+2. The variable `str` is not initialized outside the block, so when it is initialized
+inside the block it is not available outside the block due to its scope. 
+
+3. You can't say with certainty whether or not the `puts str` code will run. Either `str`
+needs to have been initialized earlier in the code, or `str` needs to have been defined
+as a method earlier in the code. If neither of those are true you would get the same error
+message as in Problem 2.
+
+4. Since `a_method` is a method, to use the variable `str` it needs to initialize `str`
+inside the method, or have it passed into the method as an argument. Line 3 would have 
+to be `def a_method(str)` and Line 7 would be `a_method(str)`. Since neither of those happened
+Ruby doesn't recognize the `str` inside the method.
+
+5. Inside the method `a_method` the variable `str` is initialized. Even though they share
+the same name, the `str` inside the method is different than the `str` that was initialized
+on Line 1. They have different scopes and changes to one will not affect the other. When `a_method` is called on Line 7 it
+assigns "world" to `str`, but that does not affect the value of the `str` from Line 1.
+In fact, the method really doesn't "do" anything - it returns "world" but doesn't assign
+that to anything or output anything. Since `str` from line 1 is unchanged, we just get the
+output `"hello"`. The underlying principle of this example is that the scopes of variables
+inside methods are different than those outside the method. Local variables also have very 
+different interactions between blocks and methods.
+
+6. If we think of variables as pointers, when `a` is initialized on Line 1 it is
+assigned to the object `"hello"`. When `b` is initialized on Line 2 it points to
+the same `"hello"` object. On Line 3 `a` is reassigned and now points to the object "hi".
+This doesn't cause `b` to change because it is still pointed at `"hello"`. So on Line 4 when
+`a` is mutated to the value of `"hi world"` it still has no effect on `b` because `b`
+remains pointed at `"hello"`.
+
+7. There are 4 variables and 2 objects in the code below. On Lines 1 and 2, `a` and `b`
+are initialized to `"hello"` and `"world"`, respectively. That creates two variables and two
+separate objects. Line 4 creates a new variable `c` but it points to the same `"hello"` 
+object that `a` points to. Line 5 creates a new variable `d`, but that also points to an
+already created object -`"world"`- that `b` points to. Line 6 reassigns `b` to the `"hello"`
+object that `a` and `c` currently point to. Line 7 keeps `a` pointed at `"hello"` since `c`
+is already pointed there. Therefore, `a`, `b`, and `c` point to `"hello"` while `d` points 
+to `"world"`.
+
+
+# Mutating Method Arguments
+
+1. On Line 6 when `change(greeting)` is run, it passes the value of `greeting`, `"hello"`,
+into the `param` parameter of the `change` method on Line 1. That method returns 
+`"hello world"` but the `+` inside the method does not mutate the caller, so greeting remains unchanged.
+If Line 6 were `greeting = change(greeting)`, it would then be affected.
+
+2. This is the same code as Problem 1 above, except that the `+` in the `change(param)`
+method is replaced by the `<<` method. The `<<` method mutates the caller, so greeting
+is changed to the return value of `param << " world"`, which is `"hello world"`.
+This is a good demonstration of mutating the caller, and the Ruby programmer has to
+be aware of which methods will mutate and which will not, since it isn't always
+obvious.
+
+3. On Line 7 when `change(greeting)` is run, it takes the value of `greeting` -"hello"-
+and passes it to the `param` parameter, so that `param` points to the "hello"
+object. Line 2 of the code then reassigns `param` to `"hi"`, so it now no longer points to the same
+object as `greeting`. Thus when `param` is mutated on Line 3 it no longer has any effect on
+`greeting` because they don't point to the same object, and Line 9 will just output `"hello"`.
+
+4. Similarly to Problem 1 above, `param` is reassigned within the `change` method. On line 2, 
+`param += "greeting"` reassigns `param` to `"hellogreeting"`. Now `param` no longer points to 
+the same object as `greeting`, so any future mutations of `param` will have no effect on `greeting`.
+
+
+# Working with Collections
+
+1. The `Array#map` method iterates over every element in the array, and it returns
+a new array with each element being modified to whatever the code in the block returns. The original
+array is not mutated.
+
+2. The `Array#select` method iterates over every element in the array, and it returns a new array containing the elements that have a return value that is 'truthy' from the method's block. It also does not mutate the original array.
+
+3. `[1, 2, 3].map {|n| n + 1}` returns `[2, 3, 4]` because `n + 1` adds 1 to every element 
+and then returns that new array. 
+`[1, 2, 3].map {|n| n += 1}` also returns `[2, 3, 4]` because `n = n + 1` will just return
+the value it evaluates to, which is `n + 1`.
+`[1, 2, 3].map {|n| n + 1}` is the preferred option, because it is simpler, easier to read,
+and we have no need to reassign `n` in our specific case.
+   
+4. Since `map` returns a new array based on the return value of the block, when using `n > 2`
+it will either return `true` or `false` based upon whether each element is greater than 2 or not.
+This is because blocks implicitly return the last line evaluated.
+
+5. Ruby will implicitly return the last line of a block, so when `puts n` is the last
+line of the block, it will output n but return `nil` (because `puts` returns `nil`). Since the return value for each
+element in the array will be `nil`, we end up with an array of `[nil, nil, nil]`.
+
+6. The `select` method returns a new array based on whether the accompanying block
+has a return value that is 'truthy' or 'falsey'. When `n + 2` is evaluated for each element of the array,
+we get `3, 4, and 5` respectively. In ruby, integers are 'truthy', so since all
+the elements give a return value that is 'truthy', `select` will keep all elements and `arr` equals
+`[1, 2, 3]`.
+
+7. As discussed in Problem 5, the return value of `puts n` is `nil`. In Ruby, `nil`
+is 'falsey'. Because each element of the array gives a return value that is
+'falsey', `arr` will be `[]` because no elements are selected by the `select` method.

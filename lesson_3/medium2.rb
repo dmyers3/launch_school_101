@@ -43,7 +43,7 @@ puts "My array looks like this now: #{my_array}"
 
 # Question 4
 sentence = "Humpty Dumpty sat on a wall."
-sentence = sentence.split.reverse.join(" ")
+sentence = sentence.split.reverse!.join(" ")
 puts sentence
   
   
