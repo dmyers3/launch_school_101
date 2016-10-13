@@ -1,11 +1,18 @@
-vehicles = ['car', 'car', 'truck', 'car', 'SUV', 'truck', 'motorcycle', 'motorcycle', 'car', 'truck']
+def find_fibonacci_index_by_length(number_digits)
+  first = 1
+  second = 1
+  index = 2
 
-def count_occurrences(arr)
-  uniq_arr = arr.uniq
-  uniq_arr.each do |element|
-    puts "#{element} => #{arr.count(element)}"
+  loop do
+    index += 1
+    fibonacci = first + second
+    break if fibonacci.to_s.size >= number_digits
+
+    first = second
+    second = fibonacci
   end
 
+  index
 end
 
-count_occurrences(vehicles)
+p find_fibonacci_index_by_length(1)
